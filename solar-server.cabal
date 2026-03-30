@@ -1,0 +1,97 @@
+cabal-version:       3.4
+name:                solar-server
+version:             2.0.0.0
+synopsis:            SOLARIS v2 — Real-time solar analytics with control, alerts, weather & yield calc
+description:
+    Enhanced SOLARIS backend with node control panel, alert management,
+    energy yield calculation, anomaly detection, and maintenance logging.
+    All state managed via STM. Data generated via lazy evaluation streams.
+    Pure functions for solar physics. ADTs for domain modelling.
+homepage:            https://github.com/solaris-analytics/solar-server
+license:             MIT
+author:              Solaris Analytics
+maintainer:          dev@solaris-analytics.io
+copyright:           2025 Solaris Analytics
+category:            Web, Science
+build-type:          Simple
+
+flag dev
+    description: Enable development mode
+    default:     False
+    manual:      True
+
+library
+    hs-source-dirs:   src
+    exposed-modules:
+        Solar.Physics
+        Solar.Types
+        Solar.Stream
+        Solar.STM
+        Solar.API
+        Solar.Forecast
+        Solar.Control
+        Solar.Alerts
+        Solar.Yield
+        Solar.Anomaly
+        Solar.Maintenance
+
+    build-depends:
+        base              >= 4.18  && < 5,
+        aeson             >= 2.2   && < 3,
+        text              >= 2.0   && < 3,
+        time              >= 1.12  && < 2,
+        stm               >= 2.5   && < 3,
+        async             >= 2.2   && < 3,
+        bytestring        >= 0.11  && < 1,
+        containers        >= 0.6   && < 1,
+        http-client       >= 0.7   && < 1,
+        http-client-tls   >= 0.3   && < 1
+
+    default-language:    Haskell2010
+    default-extensions:
+        OverloadedStrings DeriveGeneric DeriveAnyClass
+        LambdaCase RecordWildCards ScopedTypeVariables
+    ghc-options: -Wall -Wcompat -fhide-source-paths
+
+executable solar-server
+    main-is:          Main.hs
+    hs-source-dirs:   app
+    build-depends:
+        base            >= 4.18 && < 5,
+        solar-server,
+        warp            >= 3.3  && < 4,
+        wai             >= 3.2  && < 4,
+        http-types      >= 0.12 && < 1,
+        aeson           >= 2.2  && < 3,
+        text            >= 2.0  && < 3,
+        bytestring      >= 0.11 && < 1,
+        stm             >= 2.5  && < 3,
+        async           >= 2.2  && < 3,
+        time            >= 1.12 && < 2,
+        containers      >= 0.6  && < 1,
+        http-client     >= 0.7  && < 1,
+        http-client-tls >= 0.3  && < 1
+
+    default-language:    Haskell2010
+    default-extensions:  OverloadedStrings DeriveGeneric DeriveAnyClass LambdaCase RecordWildCards ScopedTypeVariables
+    ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N -fhide-source-paths
+    if flag(dev)
+        ghc-options: -DDEVELOPMENT
+
+test-suite solar-server-test
+    type:             exitcode-stdio-1.0
+    main-is:          Spec.hs
+    hs-source-dirs:   test
+    build-depends:
+        base >= 4.18 && < 5, solar-server,
+        hspec >= 2.11 && < 3, QuickCheck >= 2.14 && < 3, aeson >= 2.2 && < 3, stm >= 2.5 && < 3
+    default-language:  Haskell2010
+    ghc-options:       -Wall -threaded -rtsopts -with-rtsopts=-N
+
+benchmark solar-bench
+    type:             exitcode-stdio-1.0
+    main-is:          Bench.hs
+    hs-source-dirs:   bench
+    build-depends:    base >= 4.18 && < 5, solar-server, criterion >= 1.6 && < 2, deepseq >= 1.4 && < 2
+    default-language:  Haskell2010
+    ghc-options:       -Wall -O2 -threaded
