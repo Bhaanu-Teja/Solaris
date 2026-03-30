@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOLARIS — Heliometric Intelligence Platform v2</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="scanlines"></div>
+    <div class="noise-overlay"></div>
+    <div class="cursor-ring" id="cursorRing"></div>
+    <div class="cursor-dot" id="cursorDot"></div>
+
+    <div class="hud-corner hud-tl">
+        <span class="hud-text">SYS:ONLINE</span>
+        <span class="hud-text" id="systemTime">--:--:-- UTC</span>
+    </div>
+    <div class="hud-corner hud-tr">
+        <span class="hud-text">SOLARIS v2.0.0</span>
+        <span class="hud-text" id="weatherStatus">WEATHER: FETCHING</span>
+    </div>
+    <div class="hud-corner hud-bl">
+        <span class="hud-text">API: <span class="text-green">OPEN-METEO</span></span>
+        <span class="hud-text">PHYSICS: <span class="text-gold">ACTIVE</span></span>
+    </div>
+    <div class="hud-corner hud-br">
+        <span class="hud-text">UPTIME: <span id="uptime">00:00:00</span></span>
+        <span class="hud-text">STREAM: <span class="status-live">LIVE</span></span>
+    </div>
+
+    <nav class="navbar" id="navbar">
+        <div class="nav-inner">
+            <div class="nav-logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 50 50" fill="none">
+                        <circle cx="25" cy="25" r="10" fill="#FFCC00"/>
+                        <circle cx="25" cy="25" r="10" fill="#FFCC00" class="sun-pulse"/>
+                        <line x1="25" y1="4" x2="25" y2="12" stroke="#FFCC00" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="25" y1="38" x2="25" y2="46" stroke="#FFCC00" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="4" y1="25" x2="12" y2="25" stroke="#FFCC00" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="38" y1="25" x2="46" y2="25" stroke="#FFCC00" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="9.4" y1="9.4" x2="15.1" y2="15.1" stroke="#FFCC00" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="34.9" y1="34.9" x2="40.6" y2="40.6" stroke="#FFCC00" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="40.6" y1="9.4" x2="34.9" y2="15.1" stroke="#FFCC00" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="15.1" y1="34.9" x2="9.4" y2="40.6" stroke="#FFCC00" stroke-width="2.5" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div class="logo-text">
+                    <span class="logo-main">SOLARIS</span>
+                    <span class="logo-sub">HELIOMETRIC INTELLIGENCE v2</span>
+                </div>
+            </div>
+            <div class="nav-links">
+                <a href="#dashboard"  class="nav-link active" data-section="dashboard"><span class="nav-icon">◈</span>DASHBOARD</a>
+                <a href="#analytics"  class="nav-link" data-section="analytics"><span class="nav-icon">◉</span>ANALYTICS</a>
+                <a href="#control"    class="nav-link" data-section="control"><span class="nav-icon">⊕</span>CONTROL</a>
+                <a href="#calculator" class="nav-link" data-section="calculator"><span class="nav-icon">◎</span>CALCULATOR</a>
+                <a href="#grid"       class="nav-link" data-section="grid"><span class="nav-icon">⊛</span>NODES</a>
+                <a href="#compare"    class="nav-link" data-section="compare"><span class="nav-icon">⋈</span>COMPARE</a>
+                <a href="#forecast"   class="nav-link" data-section="forecast"><span class="nav-icon">◐</span>FORECAST</a>
+            </div>
+            <div class="nav-controls">
+                <div class="alert-btn" id="alertBtn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                    <span class="alert-count" id="alertCount">0</span>
+                </div>
+                <button class="ctrl-btn" id="refreshBtn" title="Refresh"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg></button>
+                <button class="ctrl-btn" id="exportBtn" title="Export CSV"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+            </div>
+        </div>
+        <div class="nav-progress" id="navProgress"></div>
+    </nav>
+
+    <!-- Alert Drawer -->
+    <div class="alert-drawer" id="alertDrawer">
+        <div class="alert-drawer-header">
+            <span class="ad-title">⚠ ACTIVE ALERTS</span>
+            <button class="ad-close" id="alertClose">✕</button>
+        </div>
+        <div class="alert-list" id="alertList"><div class="alert-empty">No active alerts.</div></div>
+        <div class="alert-drawer-footer">
+            <button class="ad-ack-btn" id="acknowledgeAll">ACKNOWLEDGE ALL</button>
+        </div>
+    </div>
+
+    <!-- SECTION 1: DASHBOARD -->
+    <section class="hero-section" id="dashboard">
+        <div class="hero-bg"><div class="grid-lines"></div><div class="radial-glow"></div></div>
+        <div class="hero-content">
+            <div class="hero-left">
+                <div class="badge-row">
+                    <span class="badge-pill">⚡ LIVE</span>
+                    <span class="badge-pill secondary" id="weatherBadge">☁ FETCHING WEATHER...</span>
+                    <span class="badge-pill success" id="onlineBadge">8 NODES ONLINE</span>
+                </div>
+                <h1 class="hero-title">
+                    <span class="title-line">HELIOMETRIC</span>
+                    <span class="title-line accent">INTELLIGENCE</span>
+                    <span class="title-line thin">PLATFORM v2</span>
+                </h1>
+                <p class="hero-desc">Real-time solar analytics with live weather integration, node control, energy yield calculator, anomaly detection, and maintenance logging.</p>
+                <div class="kpi-row">
+                    <div class="kpi-card"><div class="kpi-header"><span class="kpi-icon">⚡</span><span class="kpi-label">TOTAL OUTPUT</span></div><div class="kpi-value"><span class="kpi-num" id="totalPowerVal">--</span><span class="kpi-unit">MW</span></div><div class="kpi-bar"><div class="kpi-fill" id="powerFill" style="width:0%"></div></div><div class="kpi-sub" id="powerTrend">Calculating...</div></div>
+                    <div class="kpi-card"><div class="kpi-header"><span class="kpi-icon">☀</span><span class="kpi-label">IRRADIANCE</span></div><div class="kpi-value"><span class="kpi-num" id="avgIrrVal">--</span><span class="kpi-unit">W/m²</span></div><div class="kpi-bar"><div class="kpi-fill amber" id="irrFill" style="width:0%"></div></div><div class="kpi-sub">Live weather data</div></div>
+                    <div class="kpi-card"><div class="kpi-header"><span class="kpi-icon">◈</span><span class="kpi-label">EFFICIENCY</span></div><div class="kpi-value"><span class="kpi-num" id="effVal">--</span><span class="kpi-unit">%</span></div><div class="kpi-bar"><div class="kpi-fill green" id="effFill" style="width:0%"></div></div><div class="kpi-sub" id="anomalySub">Checking anomalies...</div></div>
+                    <div class="kpi-card"><div class="kpi-header"><span class="kpi-icon">🌿</span><span class="kpi-label">CO₂ OFFSET</span></div><div class="kpi-value"><span class="kpi-num" id="co2Val">--</span><span class="kpi-unit">kg/day</span></div><div class="kpi-bar"><div class="kpi-fill green" id="co2Fill" style="width:0%"></div></div><div class="kpi-sub" id="treeSub">-- trees equiv.</div></div>
+                </div>
+            </div>
+            <div class="hero-right">
+                <div class="globe-wrapper">
+                    <div id="canvas-container"></div>
+                    <div class="globe-rings"><div class="globe-ring r1"></div><div class="globe-ring r2"></div></div>
+                </div>
+            </div>
+        </div>
+        <div class="live-strip">
+            <div class="strip-label"><span class="live-dot"></span>REALTIME POWER OUTPUT — LAST 60 SECONDS</div>
+            <canvas id="liveStripCanvas" height="56"></canvas>
+        </div>
+    </section>
+
+    <!-- SECTION 2: ANALYTICS -->
+    <section class="analytics-section" id="analytics">
+        <div class="section-container">
+            <div class="section-title-row">
+                <div class="section-title-block"><span class="section-pre">MODULE 02</span><h2 class="section-title">SOLAR ANALYTICS</h2><p class="section-desc">Live weather-integrated irradiance, generation and anomaly analysis</p></div>
+                <div class="time-control-panel"><span class="tcp-label">INTERVAL</span><div class="time-btns"><button class="tbtn active" data-range="realtime">LIVE</button><button class="tbtn" data-range="hourly">1H</button><button class="tbtn" data-range="daily">1D</button><button class="tbtn" data-range="weekly">1W</button></div></div>
+            </div>
+            <div class="charts-row primary">
+                <div class="chart-panel wide"><div class="panel-header"><div class="panel-title-block"><span class="panel-pre">IRRADIANCE</span><h3 class="panel-title">24h Global Distribution</h3></div><div class="panel-meta"><span class="meta-badge lazy">Open-Meteo</span><span class="meta-badge">W/m²</span></div></div><div class="chart-wrap"><canvas id="irradianceCanvas"></canvas></div><div class="panel-footer"><span class="footer-stat">MAX: <strong id="maxIrr">--</strong></span><span class="footer-stat">AVG: <strong id="avgIrr">--</strong></span><span class="footer-stat">MIN: <strong id="minIrr">--</strong></span></div></div>
+                <div class="chart-panel narrow"><div class="panel-header"><div class="panel-title-block"><span class="panel-pre">OUTPUT</span><h3 class="panel-title">Node Generation</h3></div><div class="panel-meta"><span class="meta-badge">kW</span></div></div><div class="chart-wrap"><canvas id="generationCanvas"></canvas></div></div>
+            </div>
+            <div class="charts-row secondary">
+                <div class="chart-panel"><div class="panel-header"><div class="panel-title-block"><span class="panel-pre">EFFICIENCY</span><h3 class="panel-title">Node Matrix</h3></div><div class="panel-meta"><span class="meta-badge stm">STM</span></div></div><div class="chart-wrap"><canvas id="efficiencyCanvas"></canvas></div></div>
+                <div class="chart-panel"><div class="panel-header"><div class="panel-title-block"><span class="panel-pre">ANOMALY DETECTION</span><h3 class="panel-title">Expected vs Actual</h3></div><div class="panel-meta"><span class="meta-badge pure">Pure Fn</span></div></div><div class="chart-wrap"><canvas id="anomalyCanvas"></canvas></div></div>
+                <div class="chart-panel"><div class="panel-header"><div class="panel-title-block"><span class="panel-pre">WEATHER</span><h3 class="panel-title">Cloud Cover Live</h3></div><div class="panel-meta"><span class="meta-badge adt">ADTs</span></div></div><div class="chart-wrap"><canvas id="cloudCanvas"></canvas></div></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 3: NODE CONTROL PANEL (NEW) -->
+    <section class="control-section" id="control">
+        <div class="section-container">
+            <div class="section-title-row">
+                <div class="section-title-block"><span class="section-pre new-badge">MODULE 03 — NEW</span><h2 class="section-title">NODE CONTROL PANEL</h2><p class="section-desc">Toggle nodes online/offline, set alert thresholds, simulate conditions, log maintenance</p></div>
+                <div class="control-global">
+                    <button class="action-btn danger" id="allOffBtn">ALL OFFLINE</button>
+                    <button class="action-btn success" id="allOnBtn">ALL ONLINE</button>
+                    <button class="action-btn accent" id="simModeBtn">⚗ SIMULATION MODE</button>
+                </div>
+            </div>
+            <div class="sim-panel" id="simPanel">
+                <div class="sim-header">⚗ SIMULATION MODE ACTIVE — Drag sliders to override real-time environmental parameters</div>
+                <div class="sim-sliders">
+                    <div class="sim-slider-group"><label>Cloud Cover <span id="simCloudVal" class="sv">30</span>%</label><input type="range" id="simCloud" min="0" max="100" value="30" class="sim-range"></div>
+                    <div class="sim-slider-group"><label>Temperature <span id="simTempVal" class="sv">25</span>°C</label><input type="range" id="simTemp" min="-10" max="60" value="25" class="sim-range"></div>
+                    <div class="sim-slider-group"><label>Irradiance Multiplier <span id="simIrrVal" class="sv">1.0</span>x</label><input type="range" id="simIrr" min="0" max="200" value="100" class="sim-range"></div>
+                </div>
+            </div>
+            <div class="control-grid" id="controlGrid"></div>
+            <div class="maint-section">
+                <div class="maint-header">
+                    <h3 class="maint-title">⚙ MAINTENANCE LOG</h3>
+                    <button class="action-btn" id="addMaintBtn">+ LOG EVENT</button>
+                </div>
+                <div class="maint-form" id="maintForm">
+                    <select class="maint-select" id="maintNode"><option value="">Select Node...</option></select>
+                    <select class="maint-select" id="maintType">
+                        <option value="inspection">Inspection</option>
+                        <option value="cleaning">Panel Cleaning</option>
+                        <option value="repair">Repair</option>
+                        <option value="replacement">Component Replacement</option>
+                        <option value="calibration">Calibration</option>
+                        <option value="upgrade">Upgrade</option>
+                    </select>
+                    <input class="maint-input-text" id="maintNote" type="text" placeholder="Notes (optional)...">
+                    <div class="maint-btns">
+                        <button class="action-btn success" id="submitMaint">LOG EVENT</button>
+                        <button class="action-btn" id="cancelMaint">CANCEL</button>
+                    </div>
+                </div>
+                <div class="maint-log" id="maintLog"><div class="maint-empty">No maintenance events logged yet.</div></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 4: ENERGY YIELD CALCULATOR (NEW) -->
+    <section class="calculator-section" id="calculator">
+        <div class="section-container">
+            <div class="section-title-row">
+                <div class="section-title-block"><span class="section-pre new-badge">MODULE 04 — NEW</span><h2 class="section-title">ENERGY YIELD CALCULATOR</h2><p class="section-desc">Calculate energy generation, cost savings, and CO₂ offset for any solar installation</p></div>
+            </div>
+            <div class="calc-grid">
+                <div class="calc-panel">
+                    <div class="calc-panel-title">⚙ SYSTEM PARAMETERS</div>
+                    <div class="calc-form">
+                        <div class="calc-field"><label>Location</label>
+                            <select id="calcLocation" class="calc-select">
+                                <option value="sanfrancisco">San Francisco, USA (37.77°N)</option>
+                                <option value="newyork">New York, USA (40.71°N)</option>
+                                <option value="london">London, UK (51.51°N)</option>
+                                <option value="tokyo">Tokyo, Japan (35.68°N)</option>
+                                <option value="sydney">Sydney, Australia (33.87°S)</option>
+                                <option value="mumbai" selected>Mumbai, India (19.08°N)</option>
+                                <option value="cairo">Cairo, Egypt (30.04°N)</option>
+                                <option value="moscow">Moscow, Russia (55.76°N)</option>
+                                <option value="custom">Custom Coordinates</option>
+                            </select>
+                        </div>
+                        <div class="calc-field" id="customCoordsField">
+                            <label>Custom Lat / Lon</label>
+                            <div style="display:flex;gap:8px">
+                                <input type="number" id="customLat" class="calc-input-num" placeholder="Lat e.g. 13.08" step="0.01" min="-90" max="90">
+                                <input type="number" id="customLon" class="calc-input-num" placeholder="Lon e.g. 80.27" step="0.01" min="-180" max="180">
+                            </div>
+                        </div>
+                        <div class="calc-field"><label>Panel Area (m²)</label><input type="number" id="calcArea" class="calc-input-num" value="50" min="1" max="100000"></div>
+                        <div class="calc-field"><label>Panel Efficiency (%)</label><input type="number" id="calcEff" class="calc-input-num" value="22.5" min="5" max="50" step="0.1"></div>
+                        <div class="calc-field"><label>System Losses (%)</label><input type="number" id="calcLoss" class="calc-input-num" value="14" min="0" max="50"></div>
+                        <div class="calc-field"><label>Electricity Rate</label><input type="number" id="calcRate" class="calc-input-num" value="8" min="0.1" step="0.1"></div>
+                        <div class="calc-field"><label>Currency</label>
+                            <select id="calcCurrency" class="calc-select">
+                                <option value="INR">₹ Indian Rupee</option>
+                                <option value="USD">$ US Dollar</option>
+                                <option value="EUR">€ Euro</option>
+                                <option value="GBP">£ British Pound</option>
+                                <option value="JPY">¥ Japanese Yen</option>
+                            </select>
+                        </div>
+                        <div class="calc-field"><label>Panel Tilt Angle: <span id="calcTiltVal" class="text-gold">25°</span></label><input type="range" id="calcTilt" min="0" max="90" value="25" class="sim-range"></div>
+                        <button class="action-btn success full-width" id="calcBtn">⚡ CALCULATE YIELD</button>
+                    </div>
+                </div>
+                <div class="calc-results-panel" id="calcResultsPanel">
+                    <div class="calc-panel-title">📊 RESULTS</div>
+                    <div class="calc-placeholder" id="calcPlaceholder">
+                        <div class="cp-icon">◎</div>
+                        <div class="cp-text">Enter parameters and click Calculate Yield</div>
+                    </div>
+                    <div class="calc-output" id="calcOutput">
+                        <div class="result-stats">
+                            <div class="result-stat gold"><div class="rs-value" id="rsDailyKwh">--</div><div class="rs-label">kWh/day</div></div>
+                            <div class="result-stat amber"><div class="rs-value" id="rsMonthlyKwh">--</div><div class="rs-label">kWh/month</div></div>
+                            <div class="result-stat green"><div class="rs-value" id="rsAnnualKwh">--</div><div class="rs-label">kWh/year</div></div>
+                        </div>
+                        <div class="result-money">
+                            <div class="money-row"><span>Daily Savings</span><span class="money-val" id="rsDailySave">--</span></div>
+                            <div class="money-row"><span>Monthly Savings</span><span class="money-val" id="rsMonthlySave">--</span></div>
+                            <div class="money-row highlight"><span>Annual Savings</span><span class="money-val" id="rsAnnualSave">--</span></div>
+                            <div class="money-row"><span>25-Year Return</span><span class="money-val" id="rs25yr">--</span></div>
+                        </div>
+                        <div class="result-co2">
+                            <div class="co2-block"><div class="co2-value" id="rsCo2">--</div><div class="co2-label">kg CO₂/year offset</div></div>
+                            <div class="co2-block"><div class="co2-value" id="rsTrees">--</div><div class="co2-label">equivalent trees planted</div></div>
+                        </div>
+                        <div class="optimal-angle">OPTIMAL TILT: <span class="oa-value" id="optimalAngle">--°</span> for this latitude</div>
+                        <div style="height:200px;margin-top:16px"><canvas id="calcChart"></canvas></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 5: NODE GRID -->
+    <section class="nodes-section" id="grid">
+        <div class="section-container">
+            <div class="section-title-row">
+                <div class="section-title-block"><span class="section-pre">MODULE 05</span><h2 class="section-title">NODE NETWORK</h2><p class="section-desc">Live telemetry with anomaly detection and real weather data</p></div>
+                <div class="node-filters">
+                    <button class="filter-btn active" data-filter="all">ALL</button>
+                    <button class="filter-btn" data-filter="high">HIGH OUTPUT</button>
+                    <button class="filter-btn" data-filter="alerts">ALERTS</button>
+                    <button class="filter-btn" data-filter="offline">OFFLINE</button>
+                </div>
+            </div>
+            <div class="nodes-grid" id="nodesGrid"></div>
+        </div>
+    </section>
+
+    <!-- SECTION 6: NODE COMPARISON (NEW) -->
+    <section class="compare-section" id="compare">
+        <div class="section-container">
+            <div class="section-title-row">
+                <div class="section-title-block"><span class="section-pre new-badge">MODULE 06 — NEW</span><h2 class="section-title">NODE COMPARISON</h2><p class="section-desc">Side-by-side deep analysis of any two monitoring nodes</p></div>
+            </div>
+            <div class="compare-selectors">
+                <div class="compare-pick"><label class="compare-label">NODE A</label>
+                    <select id="compareA" class="calc-select">
+                        <option value="0">San Francisco</option><option value="1">New York</option><option value="2">London</option><option value="3">Tokyo</option><option value="4">Sydney</option><option value="5" selected>Mumbai</option><option value="6">Cairo</option><option value="7">Moscow</option>
+                    </select>
+                </div>
+                <div class="compare-vs">VS</div>
+                <div class="compare-pick"><label class="compare-label">NODE B</label>
+                    <select id="compareB" class="calc-select">
+                        <option value="0">San Francisco</option><option value="1">New York</option><option value="2">London</option><option value="3" selected>Tokyo</option><option value="4">Sydney</option><option value="5">Mumbai</option><option value="6">Cairo</option><option value="7">Moscow</option>
+                    </select>
+                </div>
+            </div>
+            <div class="compare-cards" id="compareCards"></div>
+            <div class="chart-panel" style="margin-top:20px">
+                <div class="panel-header"><div class="panel-title-block"><span class="panel-pre">OVERLAY</span><h3 class="panel-title">24h Irradiance Comparison</h3></div></div>
+                <div class="chart-wrap"><canvas id="compareCanvas"></canvas></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 7: FORECAST -->
+    <section class="forecast-section" id="forecast">
+        <div class="section-container">
+            <div class="section-title-row">
+                <div class="section-title-block"><span class="section-pre">MODULE 07</span><h2 class="section-title">PREDICTIVE FORECAST</h2><p class="section-desc">72-hour generation forecast using Haskell lazy evaluation streams</p></div>
+            </div>
+            <div class="forecast-grid">
+                <div class="chart-panel forecast-main">
+                    <div class="panel-header"><div class="panel-title-block"><span class="panel-pre">72H FORECAST</span><h3 class="panel-title">Fleet Generation Prediction</h3></div><div class="panel-meta"><span class="meta-badge lazy">Lazy Streams</span><span class="meta-badge">87% Confidence</span></div></div>
+                    <div class="chart-wrap tall"><canvas id="forecastCanvas"></canvas></div>
+                </div>
+                <div class="forecast-sidebar">
+                    <div class="forecast-day-card"><div class="fd-label">TODAY</div><div class="fd-icon">☀</div><div class="fd-value" id="fd0val">--</div><div class="fd-unit">MWh</div></div>
+                    <div class="forecast-day-card"><div class="fd-label">TOMORROW</div><div class="fd-icon">⛅</div><div class="fd-value" id="fd1val">--</div><div class="fd-unit">MWh</div></div>
+                    <div class="forecast-day-card"><div class="fd-label">DAY +2</div><div class="fd-icon">🌤</div><div class="fd-value" id="fd2val">--</div><div class="fd-unit">MWh</div></div>
+                    <div class="haskell-info-card">
+                        <div class="hic-title">⚡ LAZY EVALUATION</div>
+                        <div class="hic-concepts">
+                            <div class="hic-item"><span class="hic-tag">Lazy Streams</span><span class="hic-desc">Infinite sequences on demand</span></div>
+                            <div class="hic-item"><span class="hic-tag">STM</span><span class="hic-desc">Atomic concurrent state</span></div>
+                            <div class="hic-item"><span class="hic-tag">Pure Fn</span><span class="hic-desc">Side-effect free physics</span></div>
+                            <div class="hic-item"><span class="hic-tag">ADTs</span><span class="hic-desc">Type-safe solar modelling</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="app-footer">
+        <div class="footer-inner">
+            <div class="footer-left"><span class="footer-logo">SOLARIS</span><span class="footer-version">v2.0.0 — GHC 9.6.7 — Open-Meteo API</span></div>
+            <div class="footer-center">Powered by Haskell Lazy Evaluation · Real-time Weather Integration</div>
+            <div class="footer-right"><span id="footerTime">--:--:-- UTC</span><span class="footer-status">● ALL SYSTEMS NOMINAL</span></div>
+        </div>
+    </footer>
+
+    <div class="data-tooltip" id="dataTooltip"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="3d.js"></script>
+    <script src="weather.js"></script>
+    <script src="control.js"></script>
+    <script src="calculator.js"></script>
+    <script src="compare.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
